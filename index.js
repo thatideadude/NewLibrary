@@ -341,10 +341,11 @@ const render = {
     },
 
     pickCover: (e, covers) => {
-      () => {
+      console.log('automatic')
         if (!e.target.dataset) {
           console.log('no dataset')
         } else {
+          
           document.querySelectorAll('.pick-cover').forEach((cover) => {
             cover.removeEventListener('click', () => {
               this.pickCover()
@@ -361,7 +362,7 @@ const render = {
           libraryCardsContainer.innerHTML = card + libraryCardsContainer.innerHTML;
         }
       }
-    }
+    
   },
 
   element: function (type, classes) {
