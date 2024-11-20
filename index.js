@@ -8,10 +8,16 @@ window.addEventListener('click', (e) => {
   if (e.target == document.querySelector(".add-icon")) {
     render.addBook.createDialog();
   }
+  if (e.target == document.querySelector('.bg-blur')) {
+    render.bookCard.closeDialog();
+  }
   for (let i = 0; i < myLibrary.length; i++) {
 
     if (e.target === document.getElementById(`info-icon-${i}`)) {
       render.info.createInfoDialog(i);
+    }
+    if (e.target === document.getElementById(`thumbnail-${i}`)) {
+      render.bookCard.createDialog(i);
     }
   }
 })
@@ -445,6 +451,91 @@ const render = {
     }
   },
 
+  bookCard: {
+
+    createDialog: async function (i) {
+      const card = render.element('div', `bg-blur`);
+      document.querySelector('.reset-display-library').prepend(card);
+      setTimeout(() => { document.querySelector('.bg-blur').style.opacity = 1 }, 10);
+      const info = await search.googleBooksByAuthorAndTitle(`${myLibrary[i].author}, ${myLibrary[i].title}`)
+      if (info != undefined) {
+
+        this.fillDialog(i, info);
+
+      } else {
+        this.fillSorry(i);
+      }
+    },
+    fillDialog: function (i, info) {
+      document.querySelector(`.bg-blur`).innerHTML = `
+            <div class="social-icons-anchor">
+            <div class="social-icons-container">
+              <a href="https://twitter.com/intent/tweet?text=Check out this book at www.wordwide.web" target="_blank"><img class="social-icon" src="./imgs/social/icons8-twitter.svg"></a>
+              <a href="http://www.facebook.com/sharer/sharer.php?u=https://thisurl.com" target="_blank"><img class="social-icon" src="./imgs/social/icons8-facebook.svg"></a>
+              <a href="whatsapp://send?text=Check out this book"><img class="social-icon" src="./imgs/social/icons8-whatsapp.svg"></a>
+            </div>
+            <div class="card-info card-info-${i}">
+            <div class='card-info-content-left'>
+              <img src="${myLibrary[i].image}" class="card-info-thumbnail card-info-thumbnail-${i}"
+              <img>
+              </div> 
+              
+        
+           
+              <div class='card-info-content-right'>
+                <h1 class="card-info-title">${myLibrary[i].title}</h1>
+                <h2 class="card-info-author">by ${myLibrary[i].author}</h1>
+                <p class="card-info-paragraph">${info}</p>
+              </div>
+              
+              </div>
+          </div>
+        `
+      setTimeout(() => {
+        document.querySelector('.social-icons-anchor').style.opacity = 1;
+        document.querySelector('.social-icons-anchor').style.filter = 'blur(0px)';
+      }, 50)
+    },
+
+    fillSorry: function (i) {
+      document.querySelector(`.bg-blur`).innerHTML = `
+            <div class="social-icons-anchor">
+            <div class="social-icons-container">
+              <a href="https://twitter.com/intent/tweet?text=Check out this book at www.wordwide.web" target="_blank"><img class="social-icon" src="./imgs/social/icons8-twitter.svg"></a>
+              <a href="http://www.facebook.com/sharer/sharer.php?u=https://thisurl.com" target="_blank"><img class="social-icon" src="./imgs/social/icons8-facebook.svg"></a>
+              <a href="whatsapp://send?text=Check out this book"><img class="social-icon" src="./imgs/social/icons8-whatsapp.svg"></a>
+            </div>
+            <div class="card-info card-info-${i}">
+            <div class='card-info-content-left'>
+              <img src="${myLibrary[i].image}" class="card-info-thumbnail card-info-thumbnail-${i}"
+              <img>
+              </div> 
+              
+        
+           
+              <div class='card-info-content-right'>
+                <h1 class="card-info-title">${myLibrary[i].title}</h1>
+                <h2 class="card-info-author">by ${myLibrary[i].author}</h1>
+                <textarea class="textarea-info-paragraph" placeholder="Add a description"></textarea>
+              </div>
+              
+              </div>
+          </div>
+        `
+      setTimeout(() => {
+        document.querySelector('.social-icons-anchor').style.opacity = 1;
+        document.querySelector('.social-icons-anchor').style.filter = 'blur(0px)';
+      }, 50)
+    },
+    closeDialog: function () {
+      document.querySelector('.social-icons-anchor').classList.add('leave');
+      setTimeout(() => {
+        document.querySelector('.bg-blur').style.transition = '700ms';
+        document.querySelector('.bg-blur').style.opacity = 0;
+        setTimeout(() => { document.querySelector('.bg-blur').remove() }, 1000)
+      }, 700)
+    }
+  },
 
   element: function (type, classes) {
     let newElement = document.createElement(type);

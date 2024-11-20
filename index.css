@@ -209,7 +209,6 @@ html {
 .card-icon:hover {
   scale: 1.1;
   opacity: 1;
-  margin: 0 3px;
   transition: 500ms;
 }
 
@@ -301,6 +300,7 @@ html {
   .close-info {
     translate: 102vw;
   }
+
 }
 
 @media screen and (max-width:1186px) {
@@ -367,6 +367,7 @@ html {
   .close-info {
     translate: 102vw;
   }
+
 }
 
 
@@ -449,6 +450,43 @@ html {
 
   .close-info {
     translate: 0vw;
+  }
+
+  .card-info {
+    display: block !important;
+    text-align: center;
+  }
+
+  .card-info-thumbnail {
+    height: 300px;
+    width: 200px !important;
+    object-fit: cover;
+  }
+
+  .social-icons-container {
+    left: 50vw !important;
+    bottom: 4rem !important;
+    translate: -50% 2.5rem !important;
+    flex-direction: row !important;
+    gap: 1rem !important;
+  }
+
+  .social-icons-anchor {
+    display: flex;
+    width: auto;
+    justify-content: center !important;
+    align-items: center;
+  }
+
+  .social-icons-container {
+    bottom: -1rem !important;
+    margin: 0.2rem auto;
+    left: 50% !important;
+    translate: -50% 2rem !important;
+  }
+  .textarea-info-paragraph{
+    text-align: center;
+    min-height: 10rem;
   }
 }
 
@@ -799,3 +837,128 @@ html.body.backdrop {
   transition: opacity 700ms;
 }
 
+.bg-blur {
+  position: absolute;
+  display: flex;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  height: calc(100vh - 45px);
+  width: 100vw;
+  align-items: center;
+  justify-content: center;
+  background-color: hsla(28, 84%, 98%, 0.7);
+  backdrop-filter: blur(10px);
+  overflow: -moz-hidden-unscrollable;
+  opacity: 0;
+  transition: 500ms;
+}
+
+.social-icons-anchor {
+  position: relative;
+  height: fit-content;
+  overflow: visible;
+  margin: auto;
+  opacity: 0;
+  filter: blur(20px);
+  transition: all 1s;
+}
+
+.card-info {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  background-color: hsla(28, 84%, 98%, 0.4);
+  backdrop-filter: blur(20px);
+  box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.142);
+  border-radius: 1rem;
+  width: 60vw;
+  height: min-content;
+  max-height: 70vh;
+  margin: auto;
+  overflow: scroll;
+  gap: 0.5rem;
+  border: solid 1rem transparent;
+}
+
+.card-info-content-right>p {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.card-info-thumbnail {
+  margin: 0.5rem;
+  max-height: 300px;
+  width: 200px;
+  align-self: right;
+  max-width: calc(100% - 1rem);
+  object-fit: cover;
+  border-radius: 0.6rem;
+  filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.142));
+}
+
+.card-info-content-right {
+  margin: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow: scroll !important;
+}
+
+.card-info-content-left {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.social-icon {
+  height: 2rem;
+  cursor: pointer;
+  filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.142));
+  filter: saturate(0);
+}
+
+.social-icon:hover {
+  filter: saturate(1);
+  scale: 1.1;
+}
+
+.social-icons-container {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: fit-content;
+  left: -3rem;
+  translate: 0 50%;
+  bottom: 50%;
+  gap: 0.25rem;
+  margin-right: 0.5rem;
+}
+
+.leave {
+  animation-name: leave;
+  animation-duration: 2000ms;
+  animation-fill-mode: forwards;
+  animation-iteration-count: 1;
+}
+
+@keyframes leave {
+  to {
+    filter: blur(20px);
+    opacity: 0;
+  }
+}
+
+.textarea-info-paragraph {
+  background-color: transparent;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1rem;
+  font-style: italic;
+  margin-top: 1rem;
+  border: none;
+  outline: none;
+  height: 80%;
+  resize: none;
+}
