@@ -1,15 +1,38 @@
 let myLibrary = [];
 
 window.addEventListener('click', (e) => {
-  // console.log(e.target)
+  console.log(e.target)
   if (e.target == document.querySelector(".close-info-x")) {
     render.info.closeInfoDialog();
   }
   if (e.target == document.querySelector(".add-icon")) {
     render.addBook.createDialog();
   }
+  for (let i = 0; i < myLibrary.length; i++) {
+
+    if (e.target === document.getElementById(`info-icon-${i}`)) {
+      render.info.createInfoDialog(i);
+    }
+  }
 })
 
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === "Enter") {
+    if (render.addBook.variables.isDialogShowing === true
+      && render.addBook.variables.isAuthorSubmitted === false
+      && render.addBook.variables.isTitleSubmitted === false) {
+      render.addBook.submitAuthor()
+    }
+    else if (render.addBook.variables.isDialogShowing === true
+      && render.addBook.variables.isAuthorSubmitted === true
+      && render.addBook.variables.isTitleSubmitted === false) {
+      render.addBook.submitTitle();
+    }
+  } if (e.key === "Escape" && render.addBook.variables.isDialogShowing === true) {
+    render.addBook.closeDialog();
+  }
+})
 
 if (localStorage.library === undefined || localStorage.library === "[]") {
 
@@ -45,13 +68,12 @@ let isBackdrop = false;
 const render = {
   mainLibrary: {
     createCards: function () {
-      myLibrary = myLibrary.reverse()
-      for (let i = 0; i < myLibrary.length; i++) {
+      for (let i = myLibrary.length - 1; i >= 0; i--) {
         this.createCardsHTML(i);
         this.showCovers(i);
         this.createBookIcons(i);
 
-        this.blinkCardsIn();
+        setTimeout(() => { this.blinkCardsIn() }, 200);
 
       }
     },
@@ -66,14 +88,15 @@ const render = {
           </div>
           </div>
           `
+
       libraryCardsContainer.innerHTML += card;
     },
     blinkCardsIn: function () {
-      let a = 0;
+      let a = myLibrary.length - 1;
       let timer = setInterval(() => {
         document.querySelector(`.card-${a}`).style.opacity = 1;
-        a++
-        if (a >= myLibrary.length) { clearInterval(timer) }
+        a--;
+        if (a < 0) { clearInterval(timer) }
       }, 300)
     },
 
@@ -100,13 +123,13 @@ const render = {
             <img class="card-icon delete-icon-${i} delete-icon" 
             src="./imgs/delete_24dp_393E41_FILL0_wght400_GRAD0_opsz24.svg"></img>
           </div>`;
-      setTimeout(() => {
-        document.getElementById(`info-icon-${i}`).
-          addEventListener('click', (e) => {
-            const id = e.target.dataset.id;
-            render.info.createInfoDialog(i);
-          })
-      }, 100)
+      // setTimeout(() => {
+      //   document.getElementById(`info-icon-${i}`).
+      //     addEventListener('click', (e) => {
+      //       const id = e.target.dataset.id;
+      //       render.info.createInfoDialog(i);
+      //     })
+      // }, 100)
 
     },
 
@@ -128,10 +151,16 @@ const render = {
   info: {
 
     createInfoDialog: async function (i) {
+      this.resetBackdropHTML();
+      setTimeout(() => {
+        document.getElementById('close-info').style.display = 'block';
+        document.getElementById('close-info').style.opacity = '1'
+      }, 2000);
       let authorInfo = await search.wikiInfo(myLibrary[i].author);
       if (authorInfo == undefined || authorInfo === "") {
-        return
+        return document.querySelector('.author-info').remove()
       } else {
+
         if (isBackdrop === false) {
           this.createBackdrop(i);
         }
@@ -140,7 +169,7 @@ const render = {
 
       let bookInfo = await search.wikiInfo(myLibrary[i].title);
       if (bookInfo == undefined || bookInfo === "") {
-        return
+        return document.querySelector('.book-info').remove()
 
       } else {
         if (isBackdrop === false) {
@@ -153,35 +182,33 @@ const render = {
       if (moreBooks.length > 0) {
         this.createMoreThumbnails(moreBooks);
       } else {
-        document.querySelector('.other-titles-title').style.display = "none"
+        document.querySelector('.other-titles').remove();
       }
+    },
 
+    resetBackdropHTML: function () {
+      document.querySelector('.backdrop').innerHTML = `
+       <div id="close-info" class="close-info"><p class="close-info-x">↩</p></div>
+        
+        <div class="author-info">
+          <h1 class="about-author-title"></h1>
+          <img class="about-author-image" style="display: none">
+          <p class="about-author-paragraph"></p>
+        </div>
+        <div class="book-info">
+          <h1 class="about-title-title"></h1>
+          <img class="about-title-image" style="display: none">
+          <p class="about-title-paragraph"></p>
+        </div>
+        <div class="other-titles">
+          <h1 class="other-titles-title"></h1>
+        </div>`
     },
 
     closeInfoDialog: function () {
-
-      document.querySelector('.wrapper').style.translate = '-100vw';
-      setTimeout(() => {
-        document.querySelector('.backdrop').innerHTML = `
-          //  <div class="js-close-info close-info" style="opacity: 1">
-          //   <p class="close-info-x">x</p>
-          // </div>
-          <div class="author-info">
-            <h1 class="about-author-title"></h1>
-            <img class="about-author-image" style="display: none">
-            <p class="about-author-paragraph"></p>
-          </div>
-          <div class="book-info">
-            <h1 class="about-title-title"></h1>
-            <img class="about-title-image" style="display: none">
-            <p class="about-title-paragraph"></p>
-          </div>
-          <div class="other-titles">
-            <h1 class="other-titles-title"></h1>
-          </div>
-          `;
-        isBackdrop = false;
-      }, 500)
+      document.querySelector('.close-info').style.opacity = '0';
+      document.querySelector('.wrapper').style.translate = '0vw';
+      isBackdrop = false;
     },
 
     createMoreThumbnails: function (moreBooks) {
@@ -245,37 +272,53 @@ const render = {
     newBookInfo: {},
 
     createDialog: function () {
-      const dialog = render.element('div', 'new-book-dialog');
-      dialog.innerHTML =
-        ` 
+      if (render.addBook.variables.isDialogShowing === false) {
+        render.addBook.variables.isDialogShowing = true;
+        const dialog = render.element('div', 'new-book-dialog');
+        dialog.innerHTML =
+          ` 
           <input for="new-book" placeholder="Who's the author?" class="ask"></input>
           <img class="input-check" src="./imgs/check_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg">
           <img class="input-cross" src="./imgs/close_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg">
-    `
-      document.body.prepend(dialog)
-      document.querySelector('.new-book-dialog').classList.add('grow');
-      document.querySelector('.ask').classList.add('show');
-      document.querySelector('.input-check').classList.add('show');
-      document.querySelector('.input-cross').classList.add('show');
-      setTimeout(() => { document.querySelector('.ask').focus() }, 800);
+        `
+        document.body.prepend(dialog)
+        document.querySelector('.new-book-dialog').classList.add('grow');
+        document.querySelector('.ask').classList.add('show');
+        document.querySelector('.input-check').classList.add('show');
+        document.querySelector('.input-cross').classList.add('show');
+        setTimeout(() => { document.querySelector('.ask').focus() }, 800);
 
-      document.querySelector('.input-check').addEventListener('click', () => {
-        render.addBook.submitAuthor()
-      }, { once: true })
+        document.querySelector('.input-check').addEventListener('click', (e) => {
+          render.addBook.submitAuthor(e)
+        }, { once: true })
+        document.querySelector('.input-cross').addEventListener('click', (e) => {
+          render.addBook.closeDialog()
+        }, { once: true })
+      }
     },
 
+
+
+    variables: { isAuthorSubmitted: false, isTitleSubmitted: false, isDialogShowing: false },
+
     submitAuthor: async function () {
+      if (this.variables.isAuthorSubmitted === true) { return }
+      this.variables.isAuthorSubmitted = true;
       this.newBookInfo.author = document.querySelector('.ask').value;
       document.querySelector('.ask').value = '';
       document.querySelector('.ask').setAttribute
         ('placeholder', "What's the title of the book?");
-      setTimeout(() => { document.querySelector('.ask').focus() }, 300);
-      document.querySelector('.input-check').addEventListener('click', () => {
-        render.addBook.submitTitle()
+      setTimeout(() => {
+        document.querySelector('.ask').focus();
+      }, 300);
+      document.querySelector('.input-check').addEventListener('click', (e) => {
+        render.addBook.submitTitle(e)
       }, { once: true })
     },
 
-    submitTitle: async function () {
+    submitTitle: async function (e) {
+      if (this.variables.isTitleSubmitted === true) { e.stopImmediatePropagation() }
+      this.variables.isTitleSubmitted = true;
       this.newBookInfo.title = document.querySelector('.ask').value;
       const covers = await search.openLibraryByAuthorAndTitle(this.newBookInfo.author, this.newBookInfo.title);
       document.querySelector('.new-book-dialog').innerHTML = '';
@@ -290,20 +333,20 @@ const render = {
       </div>
       </div>`
 
-      document.getElementById('read-yes').addEventListener('click', () => {
-        this.handleListenersCovers('Read', covers)
+      document.getElementById('read-yes').addEventListener('click', (e) => {
+        this.handleListenersCovers('Read', covers, e)
       },)
 
-      document.getElementById('read-no').addEventListener('click', () => {
-        this.handleListenersCovers('Not yet read', covers)
+      document.getElementById('read-no').addEventListener('click', (e) => {
+        this.handleListenersCovers('Not yet read', covers, e)
       })
 
-      document.getElementById('read-middle').addEventListener('click', () => {
-        this.handleListenersCovers('Reading', covers)
+      document.getElementById('read-middle').addEventListener('click', (e) => {
+        this.handleListenersCovers('Reading', covers, e)
       })
     },
 
-    handleListenersCovers: function (status, covers) {
+    handleListenersCovers: function (status, covers, e) {
       if (status === 'Read') {
         render.addBook.newBookInfo.status = 'Read';
       } if (status === 'Not yet read') {
@@ -311,18 +354,19 @@ const render = {
       } if (status === 'Reading') {
         render.addBook.newBookInfo.status = 'Reading';
       }
+      e.stopImmediatePropagation();
       if (covers.length > 0) {
-        this.showCovers(covers);
+        this.showCovers(covers, e);
       }
     },
 
-    showCovers: function (covers) {
+    showCovers: function (covers, e) {
       document.getElementById('read-yes').addEventListener('click', this.handleListenersCovers);
       document.getElementById('read-no').addEventListener('click', this.handleListenersCovers);
       document.getElementById('read-middle').addEventListener('click', this.handleListenersCovers);
       document.querySelector('.new-book-dialog').classList.add('grow-more');
       document.querySelector('.new-book-dialog').classList.remove('grow');
-      document.querySelector('.new-book-dialog').innerHTML = `<h1>Pick a cover<h1>`
+      document.querySelector('.new-book-dialog').innerHTML = `<h1 class="pick-cover-title">Pick a cover<h1>`
       const coversWrapper = render.element('div', 'covers-wrapper');
       document.querySelector('.new-book-dialog').appendChild(coversWrapper)
       for (let i = 0; i < covers.length; i++) {
@@ -334,36 +378,73 @@ const render = {
         }
       }
       document.querySelector('.new-book-dialog').addEventListener('click', (e) => {
-        this.pickCover(e, covers)
-        console.log('working')
-      }, { once: true })
-
+        render.addBook.pickCover(e, covers)
+      })
+      e.stopImmediatePropagation();
     },
 
     pickCover: (e, covers) => {
-      console.log('automatic')
-        if (!e.target.dataset) {
-          console.log('no dataset')
-        } else {
-          
-          document.querySelectorAll('.pick-cover').forEach((cover) => {
-            cover.removeEventListener('click', () => {
-              this.pickCover()
-            })
-          })
-          let i = myLibrary.length;
-          let card = `
+      render.addBook.newBookInfo.image = covers[e.target.dataset.index];
+      document.querySelector('.new-book-dialog').removeEventListener('click',
+        render.addBook.pickCover)
+
+      if (e.target.dataset.index == undefined) {
+        console.log('no dataset')
+      } else {
+        let i = myLibrary.length;
+        let card = `
           <div class="card card-${i}" style="opacity:1">
             <img src="${covers[e.target.dataset.index]}" class="thumbnail thumbnail-${i}" id="thumbnail-${i}">
+            <div class="card-icons-container">
+            <img data-id="${i}" id="info-icon-${i}"
+            class="card-icon info-icon-${i} info-icon" 
+            src="./imgs/info_24dp_393E41_FILL0_wght400_GRAD0_opsz24.svg"></img>
+            <img onclick="changeBookCover(${i})" class="card-icon change-pic-icon-${i} change-pic-icon" 
+            src="./imgs/image_24dp_393E41_FILL0_wght400_GRAD0_opsz24.svg"></img>
+            <img class="card-icon share-icon-${i} share-icon" 
+            src="./imgs/share_24dp_393E41_FILL0_wght400_GRAD0_opsz24.svg"></img>
+            <img class="card-icon delete-icon-${i} delete-icon" 
+            src="./imgs/delete_24dp_393E41_FILL0_wght400_GRAD0_opsz24.svg"></img>
+          </div>
             </div>          
           </div>
           </div>
           `
-          libraryCardsContainer.innerHTML = card + libraryCardsContainer.innerHTML;
-        }
+        libraryCardsContainer.innerHTML = card + libraryCardsContainer.innerHTML;
+        myLibrary.push(render.addBook.newBookInfo);
+        saveToStorage();
       }
-    
+      render.addBook.closeDialog()
+    },
+
+
+    closeDialog: function () {
+      console.log('active')
+      // document.querySelector('.new-book-dialog').style.height = "0px";
+
+      Array.from(document.querySelector('.new-book-dialog').children).forEach((element) => {
+        element.style.transition = "300ms"
+        element.style.opacity = "0"
+        setTimeout(() => {
+          element.style.display = "none";
+        }, 600)
+      })
+      document.querySelector('.new-book-dialog').style.height = "auto";
+      document.querySelector('.new-book-dialog').classList.remove('grow');
+      document.querySelector('.new-book-dialog').style.height = '0px';
+      setTimeout(() => {
+
+      }, 900)
+      setTimeout(() => {
+
+        document.querySelector('.new-book-dialog').remove();
+        this.variables.isDialogShowing = false;
+        this.variables.isAuthorSubmitted = false;
+        this.variables.isTitleSubmitted = false;
+      }, 1500);
+    }
   },
+
 
   element: function (type, classes) {
     let newElement = document.createElement(type);
@@ -371,7 +452,6 @@ const render = {
     return newElement
   }
 }
-
 
 const search = {
 
@@ -533,4 +613,3 @@ function addBookToLibrary(book) {
   myLibrary.push(book);
   saveToStorage();
 }
-

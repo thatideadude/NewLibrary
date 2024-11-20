@@ -83,30 +83,50 @@ html {
   opacity: 1;
   transition: opacity 1000ms;
   padding: 0 0rem;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  align-items: first baseline;
 }
 
 .card {
   position: relative;
-  max-width: 8rem;
+  max-height: 200px;
   margin-top: 2rem;
   cursor: pointer;
   filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.142));
   opacity: 0;
   display: flex;
   transition: opacity 1000ms;
-  align-items: flex-end;
+
 }
 
 .thumbnail {
+  height: 200px;
   border-radius: 0.3rem;
   width: 100%;
+  max-width: 130px;
   object-fit: cover;
   transition: 500ms
 }
 
 .thumbnail:hover,
 .other-titles-img:hover {
+  scale: 1.1;
+}
+
+.card-icons-container:has(.card-icon:nth-of-type(1):hover) {
+  scale: 1.1;
+}
+
+.card-icons-container:has(.card-icon:nth-of-type(2):hover) {
+  scale: 1.1;
+}
+
+.card-icons-container:has(.card-icon:nth-of-type(3):hover) {
+  scale: 1.1;
+}
+
+.card-icons-container:has(.card-icon:nth-of-type(4):hover) {
   scale: 1.1;
 }
 
@@ -158,14 +178,15 @@ html {
 
 .card-icons-container {
   position: relative;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   opacity: 0;
-  gap: 5px;
-  margin: 10px 0 0 0px;
+  gap: 8px;
+  margin: 0px 0 20px 0px;
   top: 0;
   left: -30px;
   translate: -5px -10px;
-  justify-content: center;
+  justify-content: end;
   transition: 300ms;
 }
 
@@ -177,10 +198,13 @@ html {
   background-color: var(--color1);
   padding: 3px;
   border-radius: 50%;
-  height: 20px;
   opacity: 0.4;
+  width: 20px;
+  height: 20px;
   transition: 300ms;
 }
+
+
 
 .card-icon:hover {
   scale: 1.1;
@@ -188,6 +212,7 @@ html {
   margin: 0 3px;
   transition: 500ms;
 }
+
 
 .more-covers {
   background-color: var(--color1);
@@ -224,7 +249,7 @@ html {
   height: 100%;
   opacity: 1;
   grid-template-columns: 34ch 34ch 34ch;
-  padding: 1rem 3rem;
+  /* padding: 1rem 3rem; */
   justify-content: center;
   overflow: scroll !important;
   gap: minmax(5ch, 10ch);
@@ -233,6 +258,7 @@ html {
   transition: all 1000ms;
   display: grid;
 }
+
 
 @media screen and (min-width: 1187px) {
   html {
@@ -243,14 +269,17 @@ html {
     height: 100vh;
     width: 100vw;
   }
+
   .library-cards-container {
-    overflow: hidden;
-    width:100vw;
-    height: 90vh;
-    align-items:flex-start;
-    grid-template-rows: repeat(auto-fill, 230px );
+    overflow-x: hidden;
+    overflow-y: scroll;
+    width: 100vw;
+    height: 100vh;
+    align-items: flex-start;
+    grid-template-rows: repeat(auto-fill, 230px);
   }
-  .wrapper{
+
+  .wrapper {
     height: calc(100vh - 45px);
   }
 
@@ -261,6 +290,16 @@ html {
   .backdrop {
     grid-template-rows: 1fr;
     overflow: hidden;
+  }
+
+  .author-info,
+  .book-info,
+  .other-titles {
+    padding: 2rem 0px 0px 0px;
+  }
+
+  .close-info {
+    translate: 102vw;
   }
 }
 
@@ -291,7 +330,7 @@ html {
     grid-template-columns: repeat(auto-fill, 140px) !important;
     grid-template-rows: 3em 190px 190px !important;
     row-gap: 1ch;
-    overflow: scroll;
+    overflow: visible;
   }
 
   .other-titles-title {
@@ -303,29 +342,34 @@ html {
   }
 
   .library-cards-container {
-    overflow-x: scroll;
-  }
-
-  .close-info {
-    height: 20px;
-    position: absolute;
-    translate: 0 -30px o !important;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    width: 100vw;
+    height: 100vh;
+    align-items: flex-start;
+    grid-template-rows: repeat(auto-fill, 230px);
   }
 
   .backdrop {
     display: grid;
     width: 90%;
-     margin: 0;
     grid-template-columns: 34ch 34ch !important;
     grid-template-rows: 1fr min-content;
     overflow-y: scroll !important;
     overflow-x: hidden;
+    margin: auto;
   }
 
   .reset-display {
     overflow-x: hidden !important;
   }
+
+  .close-info {
+    translate: 102vw;
+  }
 }
+
+
 
 @media screen and (max-width: 831px) {
   html {
@@ -335,7 +379,6 @@ html {
   .backdrop {
     display: block !important;
     margin: auto;
-    padding: 2rem 0rem;
     width: 90%;
     justify-content: center;
     overflow: scroll;
@@ -348,7 +391,7 @@ html {
   }
 
   .library-cards-container {
-    margin-bottom: 60px; 
+    margin-bottom: 60px;
   }
 
   .wrapper {
@@ -359,9 +402,10 @@ html {
   .author-info,
   .book-info,
   .other-titles {
+    width: 30ch;
     margin-left: auto !important;
     margin-right: auto !important;
-    padding: 0px !important;
+    padding: 2rem 0 0 0px !important;
     margin-bottom: 0;
   }
 
@@ -377,12 +421,6 @@ html {
     position: absolute;
     bottom: 0;
     width: 100%;
-  }
-
-  .close-info {
-    position: fixed !important;
-    top: 10px;
-    left: 0px !important;
   }
 
   .other-titles {
@@ -401,8 +439,36 @@ html {
     /* border-radius: 0.3rem; */
   }
 
+  .about-author-paragraph {
+    max-width: 36ch;
+  }
+
   div.backdrop {
     overflow-x: scroll !important;
+  }
+
+  .close-info {
+    translate: 0vw;
+  }
+}
+
+@media screen and (max-width: 440px) {
+
+  .author-info,
+  .book-info,
+  .other-titles {
+    padding: 2rem 1rem !important;
+    margin-top: 1rem;
+  }
+
+  .close-info {
+    position: absolute;
+    z-index: 10;
+    scale: 0.8;
+    top: -1rem !important;
+    left: -1rem !important;
+    padding: 0.4rem;
+    margin: 1rem 0;
   }
 }
 
@@ -469,65 +535,6 @@ p.about-title-paragraph {
 
 }
 
-.close-tag {
-  position: absolute;
-  left: 8px;
-  top: 8px;
-  /* border: var(--color2) solid 2px; */
-  border-radius: 50%;
-  /* background-color: var(--color3); */
-  opacity: 0.61;
-  cursor: initial;
-  scale: 1.1;
-}
-
-.close-tag:hover,
-.close-info:hover {
-  opacity: 1;
-}
-
-.close-tag-x {
-  width: 20px;
-  height: 20px;
-  translate: 0 -1px;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  font-weight: bolder;
-  color: var(--color3);
-  cursor: default;
-  scale: 1.1;
-}
-
-
-.sorry-message {
-  opacity: 0;
-  transition: 1000ms
-}
-
-.close-info {
-  position: absolute;
-  left: 20px;
-  top: 20px;
-  max-width: 20px;
-  max-height: 20px;
-  border-radius: 50%;
-  opacity: 0.61;
-  font-weight: bold;
-  cursor: initial;
-  scale: 1.1;
-  transition: 1s;
-}
-
-.close-info-x {
-  width: 20px;
-  height: 20px;
-  translate: 5px -1px;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  color: var(--color3);
-  cursor: default;
-  scale: 0.9;
-  transition: 300ms;
-}
-
 .other-titles-img {
   border-radius: 0.3rem;
   max-width: 130px;
@@ -564,7 +571,7 @@ p.about-title-paragraph {
   justify-content: center;
   align-items: center;
   padding: 0rem;
-  transition: 1s;
+  transition: height 1s;
 }
 
 input.ask {
@@ -594,6 +601,8 @@ input.ask {
 .input-cross:hover {
   scale: 1.3;
 }
+
+
 
 .grow {
   animation-name: grow;
@@ -733,6 +742,7 @@ a.read-status:hover>* {
   height: 100%;
   width: 50%;
   overflow-y: scroll;
+  margin: auto;
 }
 
 html.body.backdrop {
@@ -754,3 +764,38 @@ html.body.backdrop {
 .status-middle {
   margin-left: 0.2rem;
 }
+
+.close-info {
+  position: absolute;
+  font-size: 2rem;
+  z-index: 10;
+  margin: 1rem;
+  top: 1rem;
+  left: -1rem;
+  /* background-color: var(--color1);
+  border: solid 0.18rem var(--color2); */
+  color: var(--color2);
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  transition: 300ms;
+  cursor: default;
+  display: none;
+  opacity: 0;
+}
+
+.close-info>p {
+  translate: 0.5rem 0.5rem;
+}
+
+.close-info:hover {
+  background-color: var(--color2);
+  color: var(--color1);
+  cursor: default;
+  border-radius: 50%;
+}
+
+.pick-cover {
+  transition: opacity 700ms;
+}
+
