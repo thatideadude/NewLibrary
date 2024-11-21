@@ -2,6 +2,7 @@ let myLibrary = [];
 
 window.addEventListener('click', (e) => {
   console.log(e.target)
+  e.stopImmediatePropagation()
   if (e.target == document.querySelector(".close-info-x")) {
     render.info.closeInfoDialog();
   }
@@ -20,6 +21,7 @@ window.addEventListener('click', (e) => {
       render.bookCard.createDialog(i);
     }
   }
+
 })
 
 
@@ -37,6 +39,8 @@ window.addEventListener('keydown', (e) => {
     }
   } if (e.key === "Escape" && render.addBook.variables.isDialogShowing === true) {
     render.addBook.closeDialog();
+  } if (e.key === "Escape" && render.bookCard.variables.isBookCardShowing === true) {
+    render.bookCard.closeDialog();
   }
 })
 
@@ -85,7 +89,13 @@ const render = {
     },
     createCardsHTML: function (i) {
       let card = `
-          <div class="card card-${i}">
+          <div class="card card-${i} dragabble" 
+          data-author="${myLibrary[i].author}"
+          data-title="${myLibrary[i].title}" 
+          data-status="${myLibrary[i].status}"
+          data-image="${myLibrary[i].image}"
+          data-index="${i}"
+          dragabble="true">
             <img class="thumbnail thumbnail-${i}" id="thumbnail-${i}">
             <div class="replacement-image replacement-image-${i}">
               <p class="replacement-title">${myLibrary[i].title}</p>
@@ -397,9 +407,15 @@ const render = {
       if (e.target.dataset.index == undefined) {
         console.log('no dataset')
       } else {
-        let i = myLibrary.length;
+        myLibrary.push(render.addBook.newBookInfo);
+        let i = myLibrary.length - 1;
         let card = `
-          <div class="card card-${i}" style="opacity:1">
+          <div class="card card-${i}" style="opacity:1"
+          data-autor="${myLibrary[i].author}"
+          data-title="${myLibrary[i].title}" 
+          data-status="${myLibrary[i].status}"
+          data-image="${myLibrary[i].image}"
+          data-index="${i}">
             <img src="${covers[e.target.dataset.index]}" class="thumbnail thumbnail-${i}" id="thumbnail-${i}">
             <div class="card-icons-container">
             <img data-id="${i}" id="info-icon-${i}"
@@ -417,7 +433,6 @@ const render = {
           </div>
           `
         libraryCardsContainer.innerHTML = card + libraryCardsContainer.innerHTML;
-        myLibrary.push(render.addBook.newBookInfo);
         saveToStorage();
       }
       render.addBook.closeDialog()
@@ -453,20 +468,25 @@ const render = {
 
   bookCard: {
 
+    variables: { isBookCardShowing: false },
+
     createDialog: async function (i) {
-      const card = render.element('div', `bg-blur`);
-      document.querySelector('.reset-display-library').prepend(card);
-      setTimeout(() => { document.querySelector('.bg-blur').style.opacity = 1 }, 10);
-      const info = await search.googleBooksByAuthorAndTitle(`${myLibrary[i].author}, ${myLibrary[i].title}`)
-      if (info != undefined) {
+      if (this.variables.isBookCardShowing === false) {
+        const card = render.element('div', `bg-blur`);
+        document.querySelector('.reset-display-library').prepend(card);
+        setTimeout(() => { document.querySelector('.bg-blur').style.opacity = 1 }, 10);
+        const info = await search.googleBooksByAuthorAndTitle(`${myLibrary[i].author}, ${myLibrary[i].title}`)
 
-        this.fillDialog(i, info);
+        if (info != undefined) {
+          this.fillDialog(i, info);
 
-      } else {
-        this.fillSorry(i);
+        } else {
+          this.fillDialogNoDescription(i);
+        }
       }
     },
     fillDialog: function (i, info) {
+      this.variables.isBookCardShowing = true;
       document.querySelector(`.bg-blur`).innerHTML = `
             <div class="social-icons-anchor">
             <div class="social-icons-container">
@@ -497,7 +517,8 @@ const render = {
       }, 50)
     },
 
-    fillSorry: function (i) {
+    fillDialogNoDescription: function (i) {
+      this.variables.isBookCardShowing = true;
       document.querySelector(`.bg-blur`).innerHTML = `
             <div class="social-icons-anchor">
             <div class="social-icons-container">
@@ -528,12 +549,20 @@ const render = {
       }, 50)
     },
     closeDialog: function () {
-      document.querySelector('.social-icons-anchor').classList.add('leave');
-      setTimeout(() => {
-        document.querySelector('.bg-blur').style.transition = '700ms';
-        document.querySelector('.bg-blur').style.opacity = 0;
-        setTimeout(() => { document.querySelector('.bg-blur').remove() }, 1000)
-      }, 700)
+      if (render.bookCard.variables.isBookCardShowing === true) {
+        render.bookCard.variables.isBookCardShowing = false;
+        setTimeout(() => {
+          document.querySelector('.social-icons-anchor').classList.add('leave');
+          setTimeout(() => {
+            document.querySelector('.bg-blur').style.transition = '700ms';
+            document.querySelector('.bg-blur').style.opacity = 0;
+            setTimeout(() => {
+              document.querySelector('.bg-blur').remove();
+
+            }, 1000)
+          }, 700)
+        }, 200)
+      }
     }
   },
 
@@ -701,6 +730,57 @@ function saveToStorage() {
 }
 
 function addBookToLibrary(book) {
-  myLibrary.push(book);
+  myLibrary.unshift(book);
   saveToStorage();
 }
+let dragged;
+let emptyCard = render.element('div', 'card');
+let cursor1, cursor2;
+let timer1, timer2;
+
+window.addEventListener('dragstart', (e) => {
+  e.stopImmediatePropagation();
+  if (e.target.classList.contains('thumbnail')) {
+    document.querySelectorAll('.card-icons-container')
+    console.log(e.target)
+    e.target.parentNode.classList.add('dragging');
+    dragged = e.target.parentNode
+  }
+})
+
+window.addEventListener('dragover', (e) => {
+  e.preventDefault()
+  e.stopImmediatePropagation();
+  timer1 = setInterval(() => {
+    cursor1 = e.clientX;
+    timer2 = setInterval(() => {
+      cursor2 = e.clientX
+    }, 12)
+  }, 12)
+  if (e.target.classList.contains('thumbnail')) {
+    if (cursor1 < cursor2) {
+      e.target.parentNode.insertAdjacentElement('afterEnd', dragged);
+    } else {
+      e.target.parentNode.insertAdjacentElement('beforeBegin', dragged);
+    }
+    console.log(e.target.getBoundingClientRect())
+    console.log(e.clientX)
+  }
+})
+
+window.addEventListener('dragend', (e) => {
+  if (e.target.classList.contains('draggable')) {
+    myLibrary = [];
+    const cards = [...document.querySelectorAll('.card')]
+    cards.forEach((card) => {
+      const title = card.dataset.title;
+      const author = card.dataset.author;
+      const status = card.dataset.status;
+      const image = card.dataset.image;
+      const newBook = new Book(title, author, status, image);
+      addBookToLibrary(newBook);
+      console.log(newBook);
+    })
+    myLibrary.reverse();
+  }
+}) 
