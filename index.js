@@ -41,6 +41,8 @@ window.addEventListener('keydown', (e) => {
     render.addBook.closeDialog();
   } if (e.key === "Escape" && render.bookCard.variables.isBookCardShowing === true) {
     render.bookCard.closeDialog();
+  } if (e.key === "Escape" && drag.variables.isMouseDown === true) {
+    drag.reassembleGrid();
   }
 })
 
@@ -89,13 +91,13 @@ const render = {
     },
     createCardsHTML: function (i) {
       let card = `
-          <div class="card card-${i} dragabble" 
+          <div class="card card-${i}" 
           data-author="${myLibrary[i].author}"
           data-title="${myLibrary[i].title}" 
           data-status="${myLibrary[i].status}"
           data-image="${myLibrary[i].image}"
           data-index="${i}"
-          dragabble="true">
+          draggable="true">
             <img class="thumbnail thumbnail-${i}" id="thumbnail-${i}">
             <div class="replacement-image replacement-image-${i}">
               <p class="replacement-title">${myLibrary[i].title}</p>
@@ -204,7 +206,7 @@ const render = {
 
     resetBackdropHTML: function () {
       document.querySelector('.backdrop').innerHTML = `
-       <div id="close-info" class="close-info"><p class="close-info-x">↩</p></div>
+       <div id="close-info" class="close-info"><p class="close-info-x">X</p></div>
         
         <div class="author-info">
           <h1 class="about-author-title"></h1>
@@ -415,7 +417,7 @@ const render = {
           data-title="${myLibrary[i].title}" 
           data-status="${myLibrary[i].status}"
           data-image="${myLibrary[i].image}"
-          data-index="${i}">
+          data-index="${i}" >
             <img src="${covers[e.target.dataset.index]}" class="thumbnail thumbnail-${i}" id="thumbnail-${i}">
             <div class="card-icons-container">
             <img data-id="${i}" id="info-icon-${i}"
@@ -734,53 +736,155 @@ function addBookToLibrary(book) {
   saveToStorage();
 }
 let dragged;
-let emptyCard = render.element('div', 'card');
-let cursor1, cursor2;
-let timer1, timer2;
+let cursor = { x: null, y: null }
 
-window.addEventListener('dragstart', (e) => {
-  e.stopImmediatePropagation();
-  if (e.target.classList.contains('thumbnail')) {
-    document.querySelectorAll('.card-icons-container')
-    console.log(e.target)
-    e.target.parentNode.classList.add('dragging');
-    dragged = e.target.parentNode
-  }
-})
+let card = { x: null, y: null }
+let walk = { x: null, y: null }
 
-window.addEventListener('dragover', (e) => {
+window.addEventListener('mousedown', (e) => {
+  e.stopImmediatePropagation()
   e.preventDefault()
-  e.stopImmediatePropagation();
-  timer1 = setInterval(() => {
-    cursor1 = e.clientX;
-    timer2 = setInterval(() => {
-      cursor2 = e.clientX
-    }, 12)
-  }, 12)
-  if (e.target.classList.contains('thumbnail')) {
-    if (cursor1 < cursor2) {
-      e.target.parentNode.insertAdjacentElement('afterEnd', dragged);
-    } else {
-      e.target.parentNode.insertAdjacentElement('beforeBegin', dragged);
+  if (drag.variables.isMouseDown === false) {
+    if (e.target.parentNode.classList.contains('card')) {
+      timer1 = setTimeout(() => {
+        setTimeout(() => { e.target.parentNode.insertAdjacentElement('afterend', emptyCard) }, 201)
+        drag.variables.isMouseDown = true;
+        drag.breakGrid();
+        dragged = e.target.parentNode;
+        dragged.style.zIndex = -2;
+
+        let left = dragged.getBoundingClientRect().left;
+        setTimeout(() => { dragged.style.left = left + "px" }, 200);
+        let top = dragged.getBoundingClientRect().top;
+        setTimeout(() => { dragged.style.top = top + "px" }, 200);
+        setTimeout(() => { dragged.style.position = "absolute" }, 200);
+
+        cursor = { x: e.clientX, y: e.clientY };
+        card = { x: e.target.getBoundingClientRect().left, y: e.target.getBoundingClientRect().top };
+        setTimeout(() => { document.querySelector(':root').style.setProperty('--scale1', '1') }, 100)
+      }, 300)
     }
-    console.log(e.target.getBoundingClientRect())
-    console.log(e.clientX)
+  }
+})
+let target;
+
+window.addEventListener('mousemove', (e) => {
+  e.stopImmediatePropagation()
+  e.preventDefault()
+  if (drag.variables.isMouseDown === true) {
+    target = e.target;
+    currentCursor = { x: e.clientX, y: e.clientY }
+    walk = { x: currentCursor.x - cursor.x, y: currentCursor.y - cursor.y }
+    dragged.style.left = (card.x + walk.x) + "px";
+    dragged.style.top = (card.y + walk.y) + "px";
+    if (e.target.parentNode.classList.contains('card') && e.target.parentNode !== dragged) {
+      
+      if (e.pageX - e.target.parentNode.getBoundingClientRect().left > 75) {
+        setTimeout(() => {
+          drag.animateDrag('afterend', target,);
+          // console.log("after" + (e.pageX - e.target.parentNode.getBoundingClientRect().left));
+        }, 100)
+      } else if ((e.pageX - e.target.parentNode.getBoundingClientRect().left < 75)) {
+        setTimeout(() => {
+          drag.animateDrag('beforebegin', target);
+          // console.log('before' + (e.pageX - e.target.parentNode.getBoundingClientRect().left))
+        }, 100)
+      }
+    }
   }
 })
 
-window.addEventListener('dragend', (e) => {
-  if (e.target.classList.contains('draggable')) {
-    myLibrary = [];
-    const cards = [...document.querySelectorAll('.card')]
-    cards.forEach((card) => {
-      const title = card.dataset.title;
-      const author = card.dataset.author;
-      const status = card.dataset.status;
-      const image = card.dataset.image;
-      const newBook = new Book(title, author, status, image);
-      addBookToLibrary(newBook);
-      console.log(newBook);
-    })
-    myLibrary.reverse();
+window.addEventListener('mouseup', (e) => {
+  e.stopImmediatePropagation()
+  e.preventDefault();
+  clearTimeout(timer1);
+  if (drag.variables.isMouseDown === true) {
+    drag.variables.isMouseDown = false;
+    currentCursor = { x: e.clientX, y: e.clientY };
+    walk = { x: currentCursor.x - cursor.x, y: currentCursor.y - cursor.y };
+    dragged.style.left = (card.x + walk.x) + "px";
+    dragged.style.top = (card.y + walk.y) + "px";
+    drag.reassembleGrid();
   }
-}) 
+})
+window.addEventListener('mouseover', (e) => {
+  e.stopImmediatePropagation();
+  e.preventDefault();
+  if (drag.variables.isMouseDown === true) {
+    target = e.target;
+
+  }
+})
+let emptyCard = render.element('div', 'temp-card');
+let emptyCard2 = render.element('div', 'temp-card-2')
+drag = {
+
+  animateDrag: function (state, target) {
+    if (target.parentNode.classList.contains('card')) {
+      if (document.querySelector('.temp-card')) {
+        try { document.querySelector('.temp-card').remove() } catch (error) { };
+      }
+      target.parentNode.insertAdjacentElement(state, emptyCard2);
+    }
+    if (target.classList.contains('card')) {
+      if (document.querySelector('.temp-card-2')) {
+        try { document.querySelector('.temp-card').remove() } catch (error) { };
+      }
+      target.insertAdjacentElement(state, emptyCard2);
+    }
+
+  },
+
+  breakGrid: function () {
+    document.querySelectorAll('.card').forEach((card) => {
+      card.classList.add('shake');
+    })
+    document.querySelectorAll('.card-icons-container').forEach((container) => {
+      container.style.display = 'none';
+    })
+  },
+
+  reassembleGrid: function () {
+
+    let orderIndex = [];
+    document.querySelectorAll('.card').forEach((card) => {
+      const newIndex = card.getBoundingClientRect().left + card.getBoundingClientRect().top * 10
+      const oldIndex = card.dataset.index;
+      orderIndex.push({ newIndex, oldIndex });
+    });
+    orderIndex.sort((a, b) => (a.newIndex > b.newIndex) ? 1 : ((b.newIndex > a.newIndex) ? -1 : 0))
+    let tempLibrary = [];
+    orderIndex.forEach((item) => {
+      tempLibrary.push(myLibrary[item.oldIndex]);
+    });
+    myLibrary = tempLibrary;
+    setTimeout(() => {
+      document.querySelector('.library-cards-container').innerHTML = '';
+      for (let i = 0; i < myLibrary.length; i++) {
+        const newCard =
+          `
+          <div style="opacity: 1" class="card card-${i}" 
+          data-author="${myLibrary[i].author}"
+          data-title="${myLibrary[i].title}" 
+          data-status="${myLibrary[i].status}"
+          data-image="${myLibrary[i].image}"
+          data-index="${i}"
+          draggable="true">
+            <img src="${myLibrary[i].image}" 
+            class="thumbnail thumbnail-${i}" id="thumbnail-${i}">
+          </div>          
+          `
+        document.querySelector('.library-cards-container').innerHTML += newCard;
+        render.mainLibrary.createBookIcons(i);
+      };
+      setTimeout(() => { 
+        document.querySelector(':root').style.setProperty('--scale1', '1.1');
+      }, 110)
+    }, 10)
+  },
+
+  variables: { isMouseDown: false, isFirstDrag: true, previousE: null }
+
+}
+
+let timer1, timer2;
